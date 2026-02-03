@@ -14,79 +14,91 @@ SEND_OK = "YES"
 SEND_BUSY = "BUSY"
 
 def main():
+    epd = None
+    img_buffer = None
+    
     try:
         epd = epaper7in5.EPD_7in5()
         
-        for _ in range(5):
-            led.toggle()
-            time.sleep(0.1)
-        led.value(0)
-        
-        time.sleep(2)
-
-        busy = False
-        while True:
-            line = sys.stdin.readline()
-            if not line:
-                time.sleep(0.01)
-                continue
-            line = line.strip()
-            if line != SEND_QUERY:
-                continue
-            if busy:
-                print(SEND_BUSY)
-                continue
-            break
-
         try:
             img_buffer = bytearray(TOTAL_SIZE)
         except MemoryError:
             print("ERR_MEM")
             return
 
-        print(SEND_OK)
+        for _ in range(5):
+            led.toggle()
+            time.sleep(0.1)
+        led.value(0)
+        time.sleep(2)
         
-        current_byte_pos = 0
-        led.value(1)
-        
-        mv = memoryview(img_buffer)
-
-        while current_byte_pos < TOTAL_SIZE:
-            hex_line = sys.stdin.readline()
+        while True:
+            gc.collect()
             
-            if not hex_line:
-                time.sleep(0.01)
-                continue
+            while True:
+                line = sys.stdin.readline()
+                if not line:
+                    time.sleep(0.01)
+                    continue
                 
-            hex_line = hex_line.strip()
+                line = line.strip()
+                if line == SEND_QUERY:
+                    print(SEND_OK)
+                    break
             
-            if not hex_line:
+            current_byte_pos = 0
+            led.value(1)
+            mv = memoryview(img_buffer)
+
+            receive_error = False
+            while current_byte_pos < TOTAL_SIZE:
+                hex_line = sys.stdin.readline()
+                
+                if not hex_line:
+                    time.sleep(0.01)
+                    continue
+                    
+                hex_line = hex_line.strip()
+                if not hex_line:
+                    continue
+
+                try:
+                    chunk_data = binascii.unhexlify(hex_line)
+                    length = len(chunk_data)
+                    
+                    if current_byte_pos + length > TOTAL_SIZE:
+                        print(f"ERR:OVERFLOW")
+                        receive_error = True
+                        break
+
+                    mv[current_byte_pos : current_byte_pos + length] = chunk_data
+                    current_byte_pos += length
+                    
+                    print("OK")
+                    
+                except Exception as e:
+                    print(f"ERR:{e}")
+                    receive_error = True
+                    break
+            
+            if receive_error:
+                led.value(0)
                 continue
 
             try:
-                chunk_data = binascii.unhexlify(hex_line)
-                length = len(chunk_data)
-                
-                mv[current_byte_pos : current_byte_pos + length] = chunk_data
-                current_byte_pos += length
-                
-                print("OK")
-                
+                led.value(0)
+                epd.init_4Gray()
+                epd.display_4Gray(img_buffer)
+                epd.sleep()
+                print("DONE")
             except Exception as e:
-                print(f"ERR:{e}")
-                return
+                print(f"ERR_DISP:{e}")
 
-        led.value(0)
-        epd.init_4Gray()
-        epd.display_4Gray(img_buffer)
-        epd.sleep()
-        print("DONE")
-        
     except Exception as e:
         print(f"FATAL:{e}")
-
-    while True:
-        time.sleep(1)
+        while True:
+            led.toggle()
+            time.sleep(0.5)
 
 if __name__ == '__main__':
     main()
