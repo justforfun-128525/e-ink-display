@@ -9,24 +9,42 @@ gc.enable()
 led = machine.Pin(25, machine.Pin.OUT)
 TOTAL_SIZE = 96000
 CHUNK_HEX_SIZE = 1024 
+SEND_QUERY = "CAN_SEND"
+SEND_OK = "YES"
+SEND_BUSY = "BUSY"
 
 def main():
     try:
         epd = epaper7in5.EPD_7in5()
         
-        try:
-            img_buffer = bytearray(TOTAL_SIZE)
-        except MemoryError:
-            print("ERR_MEM")
-            return
-
         for _ in range(5):
             led.toggle()
             time.sleep(0.1)
         led.value(0)
         
         time.sleep(2)
-        print("READY")
+
+        busy = False
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                time.sleep(0.01)
+                continue
+            line = line.strip()
+            if line != SEND_QUERY:
+                continue
+            if busy:
+                print(SEND_BUSY)
+                continue
+            break
+
+        try:
+            img_buffer = bytearray(TOTAL_SIZE)
+        except MemoryError:
+            print("ERR_MEM")
+            return
+
+        print(SEND_OK)
         
         current_byte_pos = 0
         led.value(1)

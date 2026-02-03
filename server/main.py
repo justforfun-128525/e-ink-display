@@ -10,6 +10,32 @@ CHUNK_SIZE = 512
 WIDTH = 800
 HEIGHT = 480
 EXPECTED_SIZE = 96000
+SEND_QUERY = "CAN_SEND"
+SEND_OK = "YES"
+SEND_BUSY = "BUSY"
+SEND_ERR_PREFIX = "ERR"
+
+def request_send_permission(ser, max_attempts=5, wait_seconds=2, timeout=2):
+    for attempt in range(max_attempts):
+        ser.write(f"{SEND_QUERY}\n".encode())
+        ser.flush()
+        start = time.time()
+        while time.time() - start < timeout:
+            if ser.in_waiting:
+                line = ser.readline().decode('utf-8', errors='ignore').strip()
+                if line == SEND_OK:
+                    return True
+                if line == SEND_BUSY:
+                    print("Pico busy. Retrying...")
+                    break
+                if line.startswith(SEND_ERR_PREFIX):
+                    print(f"Pico error: {line}")
+                    return False
+            time.sleep(0.01)
+        if attempt < max_attempts - 1:
+            time.sleep(wait_seconds)
+    print("No response from Pico. Try again later.")
+    return False
 
 def process_image(image_path):
     img = Image.open(image_path).convert('L')
@@ -39,15 +65,10 @@ def send_image_to_pico(image_path):
         ser.reset_input_buffer()
         ser.reset_output_buffer()
         
-        print("READY wait")
-        
-        while True:
-            if ser.in_waiting:
-                line = ser.readline().decode('utf-8', errors='ignore').strip()
-                if "READY" in line:
-                    print("Connection successful. Start sending text mode.")
-                    break
-            time.sleep(0.01)
+        if not request_send_permission(ser):
+            return
+
+        print("Connection successful. Start sending text mode.")
 
         bytes_sent = 0
         
@@ -96,4 +117,4 @@ def send_image_to_pico(image_path):
         if ser: ser.close()
 
 if __name__ == "__main__":
-    send_image_to_pico("test.jpg")
+    send_image_to_pico("grayscale_gradient.jpg")
