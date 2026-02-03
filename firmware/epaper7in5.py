@@ -351,13 +351,17 @@ class EPD_7in5:
         self.WaitUntilIdle()
 
     def display_4Gray(self, image):
+        # Panel-specific 2-bit level remap to correct grayscale order.
+        # Input levels: 0=black, 1=dark gray, 2=light gray, 3=white
+        # Remap fixes observed inversion/permutation on this panel.
+        remap = (2, 0, 3, 1)
         self.send_command(0x10)
         for i in range(0, 48000):     
             temp3=0
             for j in range(0, 2):
                 temp1 = image[i*2+j]
                 for k in range(0, 2):
-                    temp2 = temp1&0x03 
+                    temp2 = remap[temp1&0x03]
                     if(temp2 == 0x03):
                         temp3 |= 0x01   # white
                     elif(temp2 == 0x00):
@@ -369,7 +373,7 @@ class EPD_7in5:
                     temp3 <<= 1
 
                     temp1 >>= 2
-                    temp2 = temp1&0x03 
+                    temp2 = remap[temp1&0x03]
                     if(temp2 == 0x03):   # white
                         temp3 |= 0x01
                     elif(temp2 == 0x00):   # black
@@ -391,7 +395,7 @@ class EPD_7in5:
             for j in range(0, 2):
                 temp1 = image[i*2+j]
                 for k in range(0, 2):
-                    temp2 = temp1&0x03 
+                    temp2 = remap[temp1&0x03]
                     if(temp2 == 0x03):
                         temp3 |= 0x00   # white
                     elif(temp2 == 0x00):
@@ -403,7 +407,7 @@ class EPD_7in5:
                     temp3 <<= 1
 
                     temp1 >>= 2
-                    temp2 = temp1&0x03
+                    temp2 = remap[temp1&0x03]
                     if(temp2 == 0x03):   # white
                         temp3 |= 0x00
                     elif(temp2 == 0x00):
