@@ -9,40 +9,251 @@
             width: 800px;
             height: 480px;
             overflow: hidden;
+            overflow-x: hidden;
         }
 
         body {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             justify-content: center;
-            align-items: center;
+            align-items: stretch;
+            width: 800px;
+            height: 480px;
             font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .card {
-            padding: 40px 60px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 90%;
+        .left-section {
+            flex: 0 0 35%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            height: 100%;
+            overflow: hidden;
+            padding: 6px 10px 10px 10px;
         }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .left-section-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            height: 38px;
+            width: 100%;
+            padding: 6px 6px 8px 6px;
+            border-bottom: 1px solid black;
         }
-        
-        .time-display {
-            font-size: 64px;
-            font-weight: bold;
+
+        .left-section-header p {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            line-height: 1.1;
+        }
+
+        .left-section-header p:first-child {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .left-section-content {
+            padding: 10px 6px 6px 6px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            min-width: 0;
+            list-style: none;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .left-section-content li {
+            font-size: 17px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            max-width: 100%;
+            padding: 10px 2px;
+            border-bottom: 1px solid black;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .left-section-content li:last-child {
+            border-bottom: 0;
+        }
+
+        .left-section-content .event-time {
+            font-weight: 700;
+            flex: 0 0 auto;
+            padding-right: 8px;
+            position: relative;
+        }
+
+        .left-section-content .event-time::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 12%;
+            width: 1px;
+            height: 76%;
+            background: black;
+        }
+
+        .left-section-content .event-text {
+            font-weight: 400;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .right-section {
+            flex: 0 0 65%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            height: 100%;
+            border-left: 1px solid black;
+            padding: 6px 8px 8px 8px;
+        }
+
+        .calendar-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            font-size: 12px;
+        }
+
+        .calendar-header-row {
+            height: 24px;
+            display: flex;
+            border-top: 1px solid black;
+            border-left: 1px solid black;
+        }
+
+        .calendar-header-time {
+            width: 44px;
+            border-right: 1px solid black;
+            border-bottom: 1px solid black;
+        }
+
+        .calendar-header-day {
+            flex: 1 1 0;
+            border-right: 1px solid black;
+            border-bottom: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .calendar-body {
+            height: calc(100% - 24px);
+            display: flex;
+            border-left: 1px solid black;
+            border-bottom: 1px solid black;
+            position: relative;
+        }
+
+        .calendar-time-column {
+            width: 44px;
+            border-right: 1px solid black;
+            position: relative;
+        }
+
+        .calendar-time-label {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            font-weight: 700;
+            padding-top: 2px;
+            transform: translateY(-6px);
+        }
+
+        .calendar-days {
+            flex: 1 1 0;
+            display: flex;
+        }
+
+        .calendar-day-column {
+            flex: 1 1 0;
+            position: relative;
+            border-right: 1px solid black;
+        }
+
+        .calendar-day-column:last-child {
+            border-right: 0;
+        }
+
+        .calendar-event {
+            background: #000;
+            color: #fff;
+            border-radius: 2px;
+            padding: 2px 4px;
+            font-size: 11px;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin: 1px;
+            position: absolute;
+            left: 2px;
+            right: 2px;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>System Time</h1>
-        <p class="time-display">{{time_placeholder}}</p>
+    <div class="left-section">
+        <div class="left-section-header">
+            <p>{{today_label}}</p>
+            <p>{{weather_label}}</p>
+        </div>
+        <div class="left-section-content">
+            {{today_events_list}}
+        </div>
+    </div>
+    <div class="right-section">
+        <div class="calendar-wrapper">
+            <div class="calendar-header-row">
+                <div class="calendar-header-time"></div>
+                {{calendar_header_days}}
+            </div>
+            <div class="calendar-body">
+                <div class="calendar-time-column">
+                    <div class="calendar-time-label" style="top: 0%;">09</div>
+                    <div class="calendar-time-label" style="top: 6.25%;">10</div>
+                    <div class="calendar-time-label" style="top: 12.5%;">11</div>
+                    <div class="calendar-time-label" style="top: 18.75%;">12</div>
+                    <div class="calendar-time-label" style="top: 25%;">13</div>
+                    <div class="calendar-time-label" style="top: 31.25%;">14</div>
+                    <div class="calendar-time-label" style="top: 37.5%;">15</div>
+                    <div class="calendar-time-label" style="top: 43.75%;">16</div>
+                    <div class="calendar-time-label" style="top: 50%;">17</div>
+                    <div class="calendar-time-label" style="top: 56.25%;">18</div>
+                    <div class="calendar-time-label" style="top: 62.5%;">19</div>
+                    <div class="calendar-time-label" style="top: 68.75%;">20</div>
+                    <div class="calendar-time-label" style="top: 75%;">21</div>
+                    <div class="calendar-time-label" style="top: 81.25%;">22</div>
+                    <div class="calendar-time-label" style="top: 87.5%;">23</div>
+                    <div class="calendar-time-label" style="top: 93.75%;">24</div>
+                </div>
+                <div class="calendar-days">
+                    {{calendar_day_columns}}
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
