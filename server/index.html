@@ -48,14 +48,14 @@
         }
 
         .left-section-header p {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 500;
             letter-spacing: 0.2px;
             line-height: 1.1;
         }
 
         .left-section-header p:first-child {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
         }
 
@@ -72,7 +72,7 @@
         }
 
         .left-section-content li {
-            font-size: 17px;
+            font-size: 21px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -83,7 +83,7 @@
             line-height: 1.2;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
         .left-section-content li:last-child {
@@ -202,7 +202,7 @@
             color: #fff;
             border-radius: 2px;
             padding: 2px 4px;
-            font-size: 11px;
+            font-size: 14px;
             line-height: 1.2;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -232,22 +232,7 @@
             </div>
             <div class="calendar-body">
                 <div class="calendar-time-column">
-                    <div class="calendar-time-label" style="top: 0%;">09</div>
-                    <div class="calendar-time-label" style="top: 6.25%;">10</div>
-                    <div class="calendar-time-label" style="top: 12.5%;">11</div>
-                    <div class="calendar-time-label" style="top: 18.75%;">12</div>
-                    <div class="calendar-time-label" style="top: 25%;">13</div>
-                    <div class="calendar-time-label" style="top: 31.25%;">14</div>
-                    <div class="calendar-time-label" style="top: 37.5%;">15</div>
-                    <div class="calendar-time-label" style="top: 43.75%;">16</div>
-                    <div class="calendar-time-label" style="top: 50%;">17</div>
-                    <div class="calendar-time-label" style="top: 56.25%;">18</div>
-                    <div class="calendar-time-label" style="top: 62.5%;">19</div>
-                    <div class="calendar-time-label" style="top: 68.75%;">20</div>
-                    <div class="calendar-time-label" style="top: 75%;">21</div>
-                    <div class="calendar-time-label" style="top: 81.25%;">22</div>
-                    <div class="calendar-time-label" style="top: 87.5%;">23</div>
-                    <div class="calendar-time-label" style="top: 93.75%;">24</div>
+                    {{calendar_time_labels}}
                 </div>
                 <div class="calendar-days">
                     {{calendar_day_columns}}

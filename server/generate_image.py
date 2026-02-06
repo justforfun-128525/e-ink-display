@@ -52,11 +52,14 @@ def _build_calendar_headers(days):
         for day in days
     )
 
-def _build_calendar_columns(events, days, local_tz):
+def _build_calendar_columns(events, days, local_tz, start_hour, end_hour):
     columns = []
     for day in days:
-        day_start = datetime.combine(day, time(hour=9), tzinfo=local_tz)
-        day_end = datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_tz)
+        day_start = datetime.combine(day, time(hour=start_hour), tzinfo=local_tz)
+        if end_hour == 24:
+            day_end = datetime.combine(day + timedelta(days=1), time.min, tzinfo=local_tz)
+        else:
+            day_end = datetime.combine(day, time(hour=end_hour), tzinfo=local_tz)
         total_minutes = (day_end - day_start).total_seconds() / 60
         day_items = []
 
@@ -92,6 +95,48 @@ def _build_calendar_columns(events, days, local_tz):
         )
 
     return "\n".join(columns)
+
+def _resolve_time_window(events, days, default_start=10, default_end=23):
+    if not events or not days:
+        return default_start, default_end
+
+    start_hour = default_start
+    end_hour = default_end
+
+    range_start = min(days)
+    range_end = max(days)
+
+    for event in events:
+        if event["all_day"]:
+            continue
+        if event["end"].date() < range_start or event["start"].date() > range_end:
+            continue
+
+        if event["start"].hour < start_hour:
+            start_hour = event["start"].hour
+        elif event["start"].hour == start_hour and event["start"].minute > 0:
+            start_hour = event["start"].hour
+
+        event_end_hour = event["end"].hour
+        if event["end"].minute > 0:
+            event_end_hour = min(24, event_end_hour + 1)
+        end_hour = max(end_hour, event_end_hour)
+
+    if end_hour <= start_hour:
+        end_hour = min(24, start_hour + 1)
+
+    return start_hour, end_hour
+
+def _build_calendar_time_labels(start_hour, end_hour):
+    total_hours = max(1, end_hour - start_hour)
+    labels = []
+    for hour in range(start_hour, end_hour + 1):
+        top_pct = (hour - start_hour) / total_hours * 100
+        labels.append(
+            f'<div class="calendar-time-label" style="top: {top_pct:.3f}%;">'
+            f"{hour:02d}</div>"
+        )
+    return "\n".join(labels)
 
 def _fetch_weather_label(day_date, local_tz):
     lat = float(os.getenv("WEATHER_LAT", "37.5665"))
@@ -140,9 +185,10 @@ def create_time_image(image_name: str = "calendar.jpg") -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     local_tz = datetime.now().astimezone().tzinfo
     today = datetime.now().date()
-    days = [today + timedelta(days=offset) for offset in range(5)]
+    days = [today + timedelta(days=offset) for offset in range(3)]
     events = calendar_api.fetch_events(days=len(days))
     weather_label = _fetch_weather_label(today, local_tz)
+    start_hour, end_hour = _resolve_time_window(events, days)
 
     template_path = "index.html"
     
@@ -159,7 +205,11 @@ def create_time_image(image_name: str = "calendar.jpg") -> str:
     html_content = html_content.replace("{{calendar_header_days}}", _build_calendar_headers(days))
     html_content = html_content.replace(
         "{{calendar_day_columns}}",
-        _build_calendar_columns(events, days, local_tz),
+        _build_calendar_columns(events, days, local_tz, start_hour, end_hour),
+    )
+    html_content = html_content.replace(
+        "{{calendar_time_labels}}",
+        _build_calendar_time_labels(start_hour, end_hour),
     )
 
     filename = image_name
